@@ -8,7 +8,7 @@ stub = service_pb2_grpc.V2Stub(ClarifaiChannel.get_grpc_channel())
 
 def detect(filename):
     # This is how you authenticate.
-    secret_key = '<Enter your key here>'
+    secret_key = 'ca98524a0b8047feb6ef2453e1c5f010'
     metadata = (('authorization', f'Key {secret_key}'),)
 
 
