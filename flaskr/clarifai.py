@@ -36,6 +36,7 @@ allowed_items = set([
     "Fruit",
     "lentils",
     "pizza",
+    "cardboard",
 ])
 
 def detect(filename):
@@ -83,4 +84,4 @@ def detect(filename):
                 mapping[concept.name] = concept.value
         
         return mapping.keys()
-        
+

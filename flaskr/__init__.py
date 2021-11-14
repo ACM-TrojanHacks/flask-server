@@ -4,7 +4,7 @@ import werkzeug
 from flask_restful import reqparse, Api, Resource
 
 from .clarifai import detect
-from .db import insertIntoCollection, getTotalEmission 
+from .db import insertIntoCollection, getSummary 
 
 UPLOAD_FOLDER = "../uploads"
 ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
@@ -27,17 +27,17 @@ class UploadImage(Resource):
         print(x)
         return { "msg" : x }, 201
 
-class TotalEmission(Resource):
+class GetSummary(Resource):
     def __init__(self):
         self.parser = reqparse.RequestParser()
 
     def get(self):
-        y = getTotalEmission()
+        y = getSummary()
         return { "msg": y }, 201
 
 api.add_resource(UploadImage, '/upload_image')
 
-api.add_resource(TotalEmission, '/total_emission')
+api.add_resource(GetSummary, '/get_summary')
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000, host="0.0.0.0", ssl_context='adhoc')

@@ -34,66 +34,108 @@ def readCollection(collectionName,query):
   mydict = { "name": "Sam", "date": "11/13/2021", "time":"14:51:00", "classification":["plastic", "teflon"] }
   '''
 def insertIntoCollection(items):
-  global names
-  mycol = mydb["classification"]
-  newDict = {}
-  newDict["name"] = names[random.randint(0,len(names)-1)]
-  
-  today = date.today()
-  dateNow = today.strftime("%m/%d/%y")
-  newDict["date"] = dateNow
+    global names
+    mycol = mydb["classification"]
+    newDict = {}
+    newDict["name"] = names[random.randint(0,len(names)-1)]
+    
+    today = date.today()
+    dateNow = today.strftime("%m/%d/%y")
+    newDict["date"] = dateNow
 
-  now = datetime.now()
-  dt_string = now.strftime("%H:%M:%S")
-  newDict["time"] = dt_string
+    now = datetime.now()
+    dt_string = now.strftime("%H:%M:%S")
+    newDict["time"] = dt_string
 
-  newItems = []
-  for item in items:
-    newItem = item.replace(" ","_").lower()
-    newItems.append(newItem)
+    newItems = []
+    for item in items:
+        newItem = item.replace(" ","_").lower()
+        newItems.append(newItem)
 
-  newDict["items"] = newItems
+    newDict["items"] = newItems
 
-  x = mycol.insert_one(newDict)
+    x = mycol.insert_one(newDict)
 
-  result = readCollection("carbonEmissionStats", { "name": { "$in": newItems } })
-  min_co2 = float('inf')
-  max_co2 = -float('inf')
-  for kv in result:
-    min_co2 = min(min_co2,float(kv["value"]))
-    max_co2 = max(max_co2,float(kv["value"]))
+    result = readCollection("carbonEmissionStats", { "name": { "$in": newItems } })
+    min_co2 = float("inf")
+    max_co2 = -float("inf")
+    min_key = ""
+    max_key = ""
+    for kv in result:
+        v = float(kv["value"])
+        if min_co2 > v:
+            min_co2 = v
+            min_key = kv["name"]
+        if max_co2 < v:
+            max_co2 = v
+            max_key = kv["name"]
+        
+        
+    d = {}
+    d["min"] = min_co2
+    d["min_key"] = min_key
+    d["max"] = max_co2
+    d["max_key"] = max_key
 
-  d = {}
-  d["min"] = min_co2
-  d["max"] = max_co2
-  return d
+    return d
 
-def getTotalEmission():
-  all = readCollection("classification",{})
-  items = []
-  itemCount = {}
-  for i in all:
-    items.extend(i["items"])
-  
-  for i in items:
-    if i in itemCount:
-      itemCount[i] = itemCount[i] + 1
-    else:
-      itemCount[i] = 1
-  
-  result = readCollection("carbonEmissionStats", { "name": { "$in": items } })
-  min_co2 = float('inf')
-  max_co2 = -float('inf')
-  #print(itemCount)
-  for kv in result:
-    min_co2 = min(min_co2,float(kv["value"])*itemCount[kv["name"]])
-    max_co2 = max(max_co2,float(kv["value"])*itemCount[kv["name"]])
-  
-  d = {}
-  d["min"] = min_co2
-  d["max"] = max_co2
-  return d
-  
+# def getTotalEmission():
+#     all = readCollection("classification",{})
+#     items = []
+#     itemCount = {}
+#     for i in all:
+#         items.extend(i["items"])
+    
+#     for i in items:
+#         if i in itemCount:
+#             itemCount[i] = itemCount[i] + 1
+#         else:
+#             itemCount[i] = 1
+    
+#     result = readCollection("carbonEmissionStats", { "name": { "$in": items } })
+#     min_co2 = float("inf")
+#     max_co2 = -float("inf")
+#     min_key = ""
+#     max_key = ""
+#     #print(itemCount)
+#     for kv in result:
+#         v = float(kv["value"])*itemCount[kv["name"]]
+#         if min_co2 > v:
+#             min_co2 = v
+#             min_key = kv["name"]
+#         if max_co2 < v:
+#             max_co2 = v
+#             max_key = kv["name"]
+
+#     d = {}
+#     d["min"] = min_co2
+#     d["min_key"] = min_key
+#     d["max"] = max_co2
+#     d["max_key"] = max_key
+#     return d
+
+def getSummary():
+    all = readCollection("classification",{})
+    items = []
+    itemCount = {}
+    for i in all:
+        items.extend(i["items"])
+    
+    for i in items:
+        if i in itemCount:
+            itemCount[i] = itemCount[i] + 1
+        else:
+            itemCount[i] = 1
+    
+    result = readCollection("carbonEmissionStats", { "name": { "$in": items } })
+    resList = []
+    for kv in result:
+        res = {}
+        res["label"] = kv["name"]
+        res["value"] = float(kv["value"])*itemCount[kv["name"]]
+        resList.append(res)
+    return resList
+
 '''
 Sample invocation and installation
 python -m pip install "pymongo[srv]"
