@@ -6,6 +6,38 @@ import base64
 
 stub = service_pb2_grpc.V2Stub(ClarifaiChannel.get_grpc_channel())
 
+allowed_items = set([
+    "beef",
+    "lamb",
+    "cheese",
+    "chocolate",
+    "coffee",
+    "prawns",
+    "palm_oil",
+    "pig_meat",
+    "poultry_meat",
+    "plastic",
+    "paper",
+    "metal",
+    "computer",
+    "desktop",
+    "glass",
+    "pork",
+    "turkey",
+    "chicken",
+    "tuna",
+    "eggs",
+    "potatoes",
+    "rice",
+    "Nuts",
+    "Beans",
+    "Vegetables",
+    "Milk",
+    "Fruit",
+    "lentils",
+    "pizza",
+])
+
 def detect(filename):
     # This is how you authenticate.
     secret_key = 'ca98524a0b8047feb6ef2453e1c5f010'
@@ -44,7 +76,11 @@ def detect(filename):
         # Since we have one input, one output will exist here.
         output = post_model_outputs_response.outputs[0]
 
-        print("Predicted concepts:")
-        print(output.data)
+        mapping = {}
+
         for concept in output.data.concepts:
-            print("%s %.2f" % (concept.name, concept.value))
+            if concept.name in allowed_items:
+                mapping[concept.name] = concept.value
+        
+        return mapping.keys()
+        
